@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dispositivos Vinculados</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: #e8eaf6;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .phone {
+            width: 360px; min-height: 100vh;
+            background: #f0f2ff;
+            display: flex; flex-direction: column;
+            box-shadow: 0 30px 80px rgba(90,100,200,0.25);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #6c7fe8, #9b8ff5);
+            padding: 24px 20px 20px; flex-shrink: 0;
+        }
+
+        .header-top { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+
+        .back-btn {
+            width: 34px; height: 34px;
+            background: rgba(255,255,255,0.2);
+            border: none; border-radius: 50%;
+            color: white; font-size: 18px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .header-title { color: white; font-size: 18px; font-weight: 800; }
+        .header-sub { color: rgba(255,255,255,0.7); font-size: 12px; margin-top: 2px; }
+
+        .summary-bar {
+            background: rgba(255,255,255,0.15);
+            border-radius: 16px; padding: 12px 16px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+
+        .summary-item { text-align: center; }
+        .summary-val { color: white; font-size: 18px; font-weight: 800; }
+        .summary-label { color: rgba(255,255,255,0.7); font-size: 10px; font-weight: 600; }
+        .summary-divider { width: 1px; height: 30px; background: rgba(255,255,255,0.2); }
+
+        .body {
+            flex: 1; overflow-y: auto;
+            padding: 16px; display: flex; flex-direction: column;
+            gap: 14px; padding-bottom: 90px;
+        }
+
+        .section-head { display: flex; justify-content: space-between; align-items: center; }
+        .section-title { font-size: 14px; font-weight: 800; color: #2d3561; }
+
+        .btn-add {
+            background: linear-gradient(135deg, #6c7fe8, #9b8ff5);
+            border: none; border-radius: 20px;
+            color: white; font-size: 12px; font-weight: 700;
+            padding: 6px 14px; cursor: pointer;
+            font-family: 'Nunito', sans-serif; transition: transform 0.15s;
+        }
+
+        .btn-add:active { transform: scale(0.95); }
+
+        .room-card {
+            background: white; border-radius: 20px; overflow: hidden;
+            box-shadow: 0 4px 20px rgba(100,120,200,0.08);
+            animation: fadeUp 0.35s ease both;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .room-header {
+            display: flex; align-items: center;
+            padding: 14px 16px; gap: 12px;
+            cursor: pointer; user-select: none;
+        }
+
+        .room-emoji { font-size: 22px; }
+        .room-info { flex: 1; }
+        .room-name { font-size: 14px; font-weight: 800; color: #2d3561; }
+        .room-kwh  { font-size: 11px; color: #9aa0c0; font-weight: 600; margin-top: 2px; }
+        .room-toggle { font-size: 16px; color: #9aa0c0; transition: transform 0.2s; }
+        .room-toggle.open { transform: rotate(180deg); }
+
+        .room-delete {
+            background: #fff0f0; border: none;
+            border-radius: 8px; padding: 6px 8px;
+            color: #ff6b6b; font-size: 14px; cursor: pointer;
+        }
+
+        .devices-list { padding: 0 16px 14px; flex-direction: column; gap: 8px; display: none; }
+        .devices-list.open { display: flex; }
+
+        .device-row {
+            background: #f8f9ff; border-radius: 14px;
+            padding: 10px 14px; display: flex; align-items: center;
+            gap: 10px; animation: fadeUp 0.25s ease both;
+        }
+
+        .device-icon { font-size: 20px; }
+        .device-info { flex: 1; }
+        .device-name  { font-size: 13px; font-weight: 700; color: #2d3561; }
+        .device-watts { font-size: 11px; color: #9aa0c0; font-weight: 600; }
+
+        .device-kwh {
+            font-size: 12px; font-weight: 800;
+            color: #6c7fe8; background: #eef0ff;
+            padding: 3px 8px; border-radius: 8px;
+        }
+
+        .device-delete { background: none; border: none; color: #ccc; font-size: 16px; cursor: pointer; padding: 2px 4px; }
+
+        .btn-add-device {
+            background: #f0f2ff; border: 2px dashed #c0c8e8;
+            border-radius: 14px; padding: 10px; text-align: center;
+            font-size: 12px; font-weight: 700; color: #6c7fe8; cursor: pointer;
+        }
+
+        .empty-state { text-align: center; padding: 40px 20px; color: #9aa0c0; font-size: 13px; }
+        .empty-icon { font-size: 44px; margin-bottom: 12px; }
+
+        .bottom-nav {
+            position: fixed; bottom: 0; width: 360px; background: white;
+            display: flex; justify-content: space-around;
+            padding: 14px 10px 20px; border-top: 1px solid #eef0ff; z-index: 50;
+        }
+
+        .nav-btn {
+            display: flex; flex-direction: column; align-items: center;
+            gap: 4px; cursor: pointer; padding: 6px 14px;
+            border-radius: 16px; transition: background 0.2s;
+        }
+
+        .nav-btn.active { background: #eef0ff; }
+        .nav-btn svg { width: 22px; height: 22px; }
+        .nav-btn.active svg { stroke: #6c7fe8; }
+        .nav-btn:not(.active) svg { stroke: #b0b8d8; }
+        .nav-label { font-size: 10px; font-weight: 700; }
+        .nav-btn.active .nav-label { color: #6c7fe8; }
+        .nav-btn:not(.active) .nav-label { color: #b0b8d8; }
+
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(30,30,60,0.5);
+            display: flex; align-items: flex-end; justify-content: center;
+            z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.3s;
+        }
+
+        .modal-overlay.open { opacity: 1; pointer-events: all; }
+
+        .modal {
+            width: 360px; background: white;
+            border-radius: 28px 28px 0 0;
+            padding: 24px 20px 36px;
+            transform: translateY(100%);
+            transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+            max-height: 85vh; overflow-y: auto;
+        }
+
+        .modal-overlay.open .modal { transform: translateY(0); }
+
+        .modal-title { font-size: 17px; font-weight: 800; color: #2d3561; margin-bottom: 18px; text-align: center; }
+
+        .modal-input {
+            width: 100%; background: #f0f2ff; border: 1.5px solid #e0e4ff;
+            border-radius: 13px; padding: 12px 16px;
+            font-family: 'Nunito', sans-serif; font-size: 14px; color: #2d3561;
+            outline: none; margin-bottom: 10px; transition: border-color 0.3s;
+        }
+
+        .modal-input:focus { border-color: #6c7fe8; }
+
+        .modal-label {
+            font-size: 11px; font-weight: 700; color: #9aa0c0;
+            letter-spacing: 1px; text-transform: uppercase;
+            margin-bottom: 6px; display: block;
+        }
+
+        .modal-btn {
+            width: 100%; padding: 14px;
+            background: linear-gradient(135deg, #6c7fe8, #9b8ff5);
+            border: none; border-radius: 13px; color: white;
+            font-family: 'Nunito', sans-serif; font-size: 15px; font-weight: 800;
+            cursor: pointer; margin-top: 8px;
+            box-shadow: 0 5px 20px rgba(108,127,232,0.3); transition: transform 0.15s;
+        }
+
+        .modal-btn:active { transform: scale(0.97); }
+
+        .modal-btn-cancel {
+            width: 100%; padding: 12px; background: transparent;
+            border: 1.5px solid #e0e4ff; border-radius: 13px; color: #9aa0c0;
+            font-family: 'Nunito', sans-serif; font-size: 14px; font-weight: 700;
+            cursor: pointer; margin-top: 6px;
+        }
+
+        .search-results { margin-top: 8px; display: flex; flex-direction: column; gap: 6px; max-height: 200px; overflow-y: auto; }
+
+        .search-item {
+            background: #f0f2ff; border-radius: 12px; padding: 10px 14px;
+            display: flex; justify-content: space-between; align-items: center;
+            cursor: pointer; transition: background 0.2s;
+        }
+
+        .search-item:active { background: #e0e4ff; }
+        .search-item-name { font-size: 13px; font-weight: 700; color: #2d3561; }
+        .search-item-watts { font-size: 12px; color: #6c7fe8; font-weight: 700; }
+
+        .room-icons { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px; max-height: 280px; overflow-y: auto; }
+
+        .room-section-lbl {
+            grid-column: 1 / -1;
+            font-size: 10px; font-weight: 800;
+            color: #9aa0c0; letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 6px 2px 2px;
+        }
+
+        .room-icon-btn {
+            background: #f0f2ff; border: 2px solid transparent;
+            border-radius: 14px; padding: 10px 6px; text-align: center;
+            cursor: pointer; transition: all 0.2s;
+        }
+
+        .room-icon-btn.selected { border-color: #6c7fe8; background: #e8eaff; }
+        .room-icon-btn .ri { font-size: 22px; }
+        .room-icon-btn .rl { font-size: 9px; color: #6b7196; font-weight: 700; margin-top: 3px; }
+
+        .toast {
+            position: fixed; bottom: 90px; left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: #2d3561; color: white;
+            padding: 10px 20px; border-radius: 24px;
+            font-size: 12px; font-weight: 700;
+            opacity: 0; transition: all 0.3s;
+            pointer-events: none; white-space: nowrap; z-index: 300;
+        }
+
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    </style>
+    <link rel="manifeest" href="manifest.json">
+    <meta name="theme-color" content="#6c7fe8">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-title" content="Gasto Energetico">
+    <link rel="apple-touch-icon" href="usc.jpg">
+</head>
+<body>
+
+<div class="phone">
+    <div class="header">
+        <div class="header-top">
+            <button class="back-btn" onclick="goBack()">&#8592;</button>
+            <div>
+                <div class="header-title">Dispositivos Vinculados</div>
+                <div class="header-sub">Calcula tu consumo real por habitación</div>
+            </div>
+        </div>
+        <div class="summary-bar">
+            <div class="summary-item">
+                <div class="summary-val" id="sumRooms">0</div>
+                <div class="summary-label">Habitaciones</div>
+            </div>
+            <div class="summary-divider"></div>
+            <div class="summary-item">
+                <div class="summary-val" id="sumDevices">0</div>
+                <div class="summary-label">Dispositivos</div>
+            </div>
+            <div class="summary-divider"></div>
+            <div class="summary-item">
+                <div class="summary-val" id="sumKwh">0</div>
+                <div class="summary-label">kWh/mes</div>
+            </div>
+            <div class="summary-divider"></div>
+            <div class="summary-item">
+                <div class="summary-val" id="sumCost">$0</div>
+                <div class="summary-label">Costo/mes</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="body">
+        <div class="section-head">
+            <div class="section-title">Mis habitaciones</div>
+            <button class="btn-add" onclick="openRoomModal()">+ Habitación</button>
+        </div>
+        <div id="roomsList"></div>
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-btn" onclick="goBack()">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            </svg>
+            <span class="nav-label">Inicio</span>
+        </div>
+        <div class="nav-btn active">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <span class="nav-label">Dispositivos</span>
+        </div>
+        <div class="nav-btn" onclick="window.location.href='configuracion.html'">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+            </svg>
+            <span class="nav-label">Configuración</span>
+        </div>
+        <div class="nav-btn" onclick="window.location.href='soporte.html'">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
+            </svg>
+            <span class="nav-label">Soporte AI</span>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="roomModal">
+    <div class="modal">
+        <div class="modal-title">Nueva habitación</div>
+        <div class="room-icons" id="roomIcons"></div>
+        <label class="modal-label">Nombre</label>
+        <input class="modal-input" id="roomNameInput" placeholder="Ej: Sala, Cocina, Cuarto...">
+        <button class="modal-btn" onclick="addRoom()">Agregar habitación</button>
+        <button class="modal-btn-cancel" onclick="closeModal('roomModal')">Cancelar</button>
+    </div>
+</div>
+
+<div class="modal-overlay" id="deviceModal">
+    <div class="modal">
+        <div class="modal-title">Agregar dispositivo</div>
+        <label class="modal-label">Buscar tipo de dispositivo</label>
+        <input class="modal-input" id="deviceSearch" placeholder="Ej: Televisor, Refrigerador..." oninput="searchDevices(this.value)">
+        <div class="search-results" id="searchResults"></div>
+        <div id="deviceCustom" style="display:none; margin-top:10px;">
+            <label class="modal-label">Nombre del dispositivo</label>
+            <input class="modal-input" id="deviceNameInput" placeholder="Ej: Televisor Samsung">
+            <label class="modal-label">Watts</label>
+            <input class="modal-input" id="deviceWatts" type="number" placeholder="Ej: 150">
+            <label class="modal-label">Horas de uso al día</label>
+            <input class="modal-input" id="deviceHours" type="number" placeholder="Ej: 8" value="8">
+            <button class="modal-btn" onclick="addCustomDevice()">Agregar dispositivo</button>
+        </div>
+        <button class="modal-btn-cancel" onclick="closeModal('deviceModal')">Cancelar</button>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── USUARIO ACTIVO ──
+var usuario = localStorage.getItem('sesionActiva');
+if (!usuario) { window.location.href = 'index.html'; }
+
+function setDato(clave, valor) { localStorage.setItem(usuario + '_' + clave, valor); }
+function getDato(clave) { return localStorage.getItem(usuario + '_' + clave); }
+
+var DEVICE_DB = [
+    {name:'Foco LED',           icon:'bulb',  watts:10},
+    {name:'Foco incandescente', icon:'bulb',  watts:60},
+    {name:'Lampara de techo',   icon:'bulb',  watts:40},
+    {name:'Tira LED',           icon:'bulb',  watts:20},
+    {name:'Televisor 32"',      icon:'tv',    watts:60},
+    {name:'Televisor 50"',      icon:'tv',    watts:120},
+    {name:'Televisor 65"',      icon:'tv',    watts:200},
+    {name:'Consola videojuegos',icon:'game',  watts:150},
+    {name:'Bocina Bluetooth',   icon:'spkr',  watts:15},
+    {name:'Proyector',          icon:'proj',  watts:300},
+    {name:'Refrigerador',       icon:'fridge',watts:150},
+    {name:'Microondas',         icon:'micro', watts:1000},
+    {name:'Estufa electrica',   icon:'stove', watts:2000},
+    {name:'Cafetera',           icon:'coffe', watts:900},
+    {name:'Licuadora',          icon:'blend', watts:500},
+    {name:'Tostador',           icon:'toast', watts:800},
+    {name:'Lavavajillas',       icon:'dish',  watts:1500},
+    {name:'Aire acondicionado mini-split', icon:'ac', watts:1500},
+    {name:'Aire acondicionado ventana',   icon:'ac', watts:1200},
+    {name:'Ventilador de techo',icon:'fan',   watts:75},
+    {name:'Ventilador de mesa', icon:'fan',   watts:40},
+    {name:'Calefactor',         icon:'heat',  watts:1500},
+    {name:'Calentador de agua', icon:'water', watts:3000},
+    {name:'Lavadora',           icon:'wash',  watts:500},
+    {name:'Secadora',           icon:'dry',   watts:2000},
+    {name:'Plancha',            icon:'iron',  watts:1000},
+    {name:'Computadora escritorio', icon:'pc', watts:200},
+    {name:'Laptop',             icon:'lap',   watts:60},
+    {name:'Monitor',            icon:'mon',   watts:30},
+    {name:'Router WiFi',        icon:'wifi',  watts:10},
+    {name:'Impresora',          icon:'print', watts:400},
+    {name:'Cargador de celular',icon:'phone', watts:10},
+    {name:'Aspiradora',         icon:'vacum', watts:1200},
+    {name:'Bomba de agua',      icon:'pump',  watts:750},
+    {name:'Horno electrico',    icon:'oven',  watts:2000}
+];
+
+var ICON_MAP = {
+    bulb:'💡', tv:'📺', game:'🎮', spkr:'🔊', proj:'📽️',
+    fridge:'🧊', micro:'📦', stove:'🍳', coffe:'☕', blend:'🥤',
+    toast:'🍞', dish:'🫧', ac:'❄️', fan:'🌀', heat:'🔥',
+    water:'🚿', wash:'🫧', dry:'💨', iron:'👕', pc:'🖥️',
+    lap:'💻', mon:'🖥️', wifi:'📡', print:'🖨️', phone:'🔋',
+    vacum:'🧹', pump:'💧', oven:'🫙'
+};
+
+var ROOM_TYPES = [
+    {icon:'couch',label:'Sala'},
+    {icon:'cook', label:'Cocina'},
+    {icon:'bed',  label:'Cuarto'},
+    {icon:'bath', label:'Bano'},
+    {icon:'dine', label:'Comedor'},
+    {icon:'book', label:'Estudio'},
+    {icon:'gym',  label:'Gym'},
+    {icon:'yard', label:'Jardin'},
+    {icon:'car',  label:'Garage'},
+    {icon:'laun', label:'Lavanderia'},
+    {icon:'stor', label:'Bodega'},
+    // Salones USC
+    {icon:'salon',  label:'Salon'},
+    {icon:'lab',    label:'Laboratorio'},
+    {icon:'biblio', label:'Biblioteca'},
+    {icon:'audit',  label:'Auditorio'},
+    {icon:'cafe',   label:'Cafeteria'},
+    {icon:'ofic',   label:'Oficina'},
+    {icon:'home',   label:'Otro'}
+];
+
+var ROOM_ICONS = {
+    couch:'🛋️', cook:'🍳', bed:'🛏️', bath:'🚿', dine:'🍽️',
+    book:'📚', gym:'🏋️', yard:'🌿', car:'🚗', laun:'🧺',
+    stor:'🛒', home:'🏠',
+    // Salones USC
+    salon:'🏫', lab:'🔬', biblio:'📖', audit:'🎭', cafe:'☕', ofic:'💼'
+};
+
+var TARIFA = 900;
+var rooms = [];
+var currentRoomId = null;
+var selectedRoomType = ROOM_TYPES[0];
+var selectedDevice = null;
+
+// Cargar habitaciones del usuario actual
+try {
+    var savedRooms = getDato('escaner_rooms');
+    if (savedRooms) rooms = JSON.parse(savedRooms);
+} catch(e) { rooms = []; }
+
+buildRoomIcons();
+renderRooms();
+updateSummary();
+
+function buildRoomIcons() {
+    var container = document.getElementById('roomIcons');
+    container.innerHTML = '';
+
+    var hogarTypes  = ['couch','cook','bed','bath','dine','book','gym','yard','car','laun','stor'];
+    var uscTypes    = ['salon','lab','biblio','audit','cafe','ofic'];
+    var otroTypes   = ['home'];
+
+    function addSection(label) {
+        var lbl = document.createElement('div');
+        lbl.className = 'room-section-lbl';
+        lbl.textContent = label;
+        container.appendChild(lbl);
+    }
+
+    function addIcons(types) {
+        types.forEach(function(iconKey) {
+            var rt = ROOM_TYPES.find(function(r){ return r.icon === iconKey; });
+            if (!rt) return;
+            var btn = document.createElement('div');
+            var isFirst = types === hogarTypes && iconKey === hogarTypes[0];
+            btn.className = 'room-icon-btn' + (isFirst && !selectedRoomType ? ' selected' : '');
+            btn.innerHTML = '<div class="ri">' + ROOM_ICONS[rt.icon] + '</div><div class="rl">' + rt.label + '</div>';
+            btn.onclick = function() {
+                document.querySelectorAll('.room-icon-btn').forEach(function(b) { b.classList.remove('selected'); });
+                btn.classList.add('selected');
+                selectedRoomType = rt;
+                var nameInput = document.getElementById('roomNameInput');
+                if (!nameInput.value) nameInput.value = rt.label;
+            };
+            container.appendChild(btn);
+        });
+    }
+
+    addSection('🏠 Hogar');
+    addIcons(hogarTypes);
+    addSection('🏫 USC — Espacios');
+    addIcons(uscTypes);
+    addSection('Otro');
+    addIcons(otroTypes);
+}
+
+function renderRooms() {
+    var list = document.getElementById('roomsList');
+    if (rooms.length === 0) {
+        list.innerHTML = '<div class="empty-state"><div class="empty-icon">🏠</div><div>Agrega habitaciones para calcular tu consumo real</div></div>';
+        return;
+    }
+    list.innerHTML = '';
+    rooms.forEach(function(room) {
+        var roomKwh = getRoomKwh(room);
+        var card = document.createElement('div');
+        card.className = 'room-card';
+        card.id = 'room-' + room.id;
+
+        var devHtml = '';
+        room.devices.forEach(function(d, i) {
+            var dkwh = calcDeviceKwh(d).toFixed(1);
+            devHtml += '<div class="device-row">' +
+                '<div class="device-icon">' + (ICON_MAP[d.icon] || '🔌') + '</div>' +
+                '<div class="device-info">' +
+                    '<div class="device-name">' + d.name + '</div>' +
+                    '<div class="device-watts">' + d.watts + 'W &middot; ' + d.hours + 'h/día</div>' +
+                '</div>' +
+                '<div class="device-kwh">' + dkwh + ' kWh</div>' +
+                '<button class="device-delete" onclick="deleteDevice(\'' + room.id + '\',' + i + ',event)">&#215;</button>' +
+                '</div>';
+        });
+
+        card.innerHTML =
+            '<div class="room-header" onclick="toggleRoom(\'' + room.id + '\')">' +
+                '<div class="room-emoji">' + (ROOM_ICONS[room.icon] || '🏠') + '</div>' +
+                '<div class="room-info">' +
+                    '<div class="room-name">' + room.name + '</div>' +
+                    '<div class="room-kwh">' + room.devices.length + ' dispositivos &middot; ' + roomKwh.toFixed(1) + ' kWh/mes</div>' +
+                '</div>' +
+                '<div class="room-toggle" id="toggle-' + room.id + '">&#9660;</div>' +
+                '<button class="room-delete" onclick="deleteRoom(\'' + room.id + '\',event)">&#128465;</button>' +
+            '</div>' +
+            '<div class="devices-list" id="devices-' + room.id + '">' +
+                devHtml +
+                '<div class="btn-add-device" onclick="openDeviceModal(\'' + room.id + '\')">+ Agregar dispositivo</div>' +
+            '</div>';
+
+        list.appendChild(card);
+    });
+}
+
+function toggleRoom(id) {
+    var list = document.getElementById('devices-' + id);
+    var toggle = document.getElementById('toggle-' + id);
+    if (list) list.classList.toggle('open');
+    if (toggle) toggle.classList.toggle('open');
+}
+
+function calcDeviceKwh(d) { return (d.watts / 1000) * d.hours * 30; }
+function getRoomKwh(room) { return room.devices.reduce(function(s,d){ return s + calcDeviceKwh(d); }, 0); }
+function getTotalKwh()    { return rooms.reduce(function(s,r){ return s + getRoomKwh(r); }, 0); }
+function getTotalDevices(){ return rooms.reduce(function(s,r){ return s + r.devices.length; }, 0); }
+
+function updateSummary() {
+    var kwh  = getTotalKwh();
+    var cost = kwh * TARIFA;
+
+    document.getElementById('sumRooms').textContent   = rooms.length;
+    document.getElementById('sumDevices').textContent = getTotalDevices();
+    document.getElementById('sumKwh').textContent     = kwh.toFixed(0);
+    document.getElementById('sumCost').textContent    = 'COP $' + cost.toLocaleString('es-CO');
+
+    var efic = kwh > 0 ? Math.min(95, Math.max(10, Math.round(100 - (kwh / 20)))) : 0;
+
+    // Guardar con prefijo de usuario
+    setDato('consumoTotal',  kwh.toFixed(0));
+    setDato('consumoHoy',    (kwh / 30).toFixed(1));
+    setDato('costoTotal',    cost.toFixed(0));
+    setDato('eficiencia',    efic);
+    setDato('escaner_rooms', JSON.stringify(rooms));
+}
+
+function openRoomModal() {
+    selectedRoomType = ROOM_TYPES[0];
+    document.getElementById('roomNameInput').value = '';
+    buildRoomIcons();
+    document.getElementById('roomModal').classList.add('open');
+}
+
+function addRoom() {
+    var name = document.getElementById('roomNameInput').value.trim();
+    if (!name) { showToast('Escribe un nombre'); return; }
+    rooms.push({ id: Date.now().toString(), name: name, icon: selectedRoomType.icon, devices: [] });
+    saveAndRender();
+    closeModal('roomModal');
+    showToast('Habitacion agregada');
+}
+
+function deleteRoom(id, e) {
+    e.stopPropagation();
+    rooms = rooms.filter(function(r){ return r.id !== id; });
+    saveAndRender();
+    showToast('Habitacion eliminada');
+}
+
+function openDeviceModal(roomId) {
+    currentRoomId = roomId;
+    selectedDevice = null;
+    document.getElementById('deviceSearch').value = '';
+    document.getElementById('searchResults').innerHTML = '';
+    document.getElementById('deviceCustom').style.display = 'none';
+    document.getElementById('deviceWatts').value = '';
+    document.getElementById('deviceHours').value = '8';
+    document.getElementById('deviceNameInput').value = '';
+    document.getElementById('deviceModal').classList.add('open');
+    searchDevices('');
+}
+
+function searchDevices(query) {
+    var results = document.getElementById('searchResults');
+    var custom  = document.getElementById('deviceCustom');
+    var filtered = query.length === 0
+        ? DEVICE_DB.slice(0, 10)
+        : DEVICE_DB.filter(function(d){ return d.name.toLowerCase().indexOf(query.toLowerCase()) >= 0; });
+
+    if (filtered.length === 0) {
+        results.innerHTML = '<div style="text-align:center;color:#9aa0c0;font-size:12px;padding:10px;">No encontrado — ingresa los datos manualmente</div>';
+        custom.style.display = 'block';
+        selectedDevice = { name: query, icon: 'plug', watts: 0 };
+        document.getElementById('deviceNameInput').value = query;
+        return;
+    }
+
+    custom.style.display = 'none';
+    results.innerHTML = '';
+    filtered.forEach(function(d) {
+        var item = document.createElement('div');
+        item.className = 'search-item';
+        item.innerHTML = '<div class="search-item-name">' + (ICON_MAP[d.icon] || '🔌') + ' ' + d.name + '</div>' +
+                         '<div class="search-item-watts">' + d.watts + 'W</div>';
+        item.onclick = function() { selectDevice(d); };
+        results.appendChild(item);
+    });
+}
+
+function selectDevice(d) {
+    selectedDevice = d;
+    document.getElementById('searchResults').innerHTML = '';
+    document.getElementById('deviceSearch').value = d.name;
+    document.getElementById('deviceNameInput').value = d.name;
+    document.getElementById('deviceWatts').value = d.watts;
+    document.getElementById('deviceHours').value = '8';
+    document.getElementById('deviceCustom').style.display = 'block';
+}
+
+function addCustomDevice() {
+    var watts = parseFloat(document.getElementById('deviceWatts').value);
+    var hours = parseFloat(document.getElementById('deviceHours').value) || 8;
+    var name  = document.getElementById('deviceNameInput').value.trim() ||
+                (selectedDevice ? selectedDevice.name : 'Dispositivo');
+
+    if (!watts || watts <= 0) { showToast('Ingresa los watts'); return; }
+
+    var room = null;
+    for (var i = 0; i < rooms.length; i++) {
+        if (rooms[i].id === currentRoomId) { room = rooms[i]; break; }
+    }
+    if (!room) return;
+
+    room.devices.push({ name: name, icon: selectedDevice ? selectedDevice.icon : 'plug', watts: watts, hours: hours });
+    saveAndRender();
+    closeModal('deviceModal');
+    showToast('Dispositivo agregado');
+
+    setTimeout(function() {
+        var list = document.getElementById('devices-' + currentRoomId);
+        var toggle = document.getElementById('toggle-' + currentRoomId);
+        if (list && !list.classList.contains('open')) {
+            list.classList.add('open');
+            if (toggle) toggle.classList.add('open');
+        }
+    }, 100);
+}
+
+function deleteDevice(roomId, index, e) {
+    e.stopPropagation();
+    for (var i = 0; i < rooms.length; i++) {
+        if (rooms[i].id === roomId) { rooms[i].devices.splice(index, 1); break; }
+    }
+    saveAndRender();
+    showToast('Dispositivo eliminado');
+}
+
+function saveAndRender() { updateSummary(); renderRooms(); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function showToast(msg) {
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(function(){ t.classList.remove('show'); }, 2000);
+}
+
+function goBack() { updateSummary(); window.location.href = 'dashboard.html'; }
+
+document.querySelectorAll('.modal-overlay').forEach(function(overlay) {
+    overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) overlay.classList.remove('open');
+    });
+});
+</script>
+<script>
+    if ('serviceworker' in navigator) {
+        navigation.serviceworker.register('./sw.js');
+    }
+</script>
+</body>
+</html>

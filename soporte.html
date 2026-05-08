@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Soporte AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: #e8eaf6;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .phone {
+            width: 360px;
+            height: 100vh;
+            background: #f0f2ff;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 30px 80px rgba(90,100,200,0.25);
+            overflow: hidden;
+        }
+
+        /* HEADER */
+        .header {
+            background: linear-gradient(135deg, #6c7fe8, #9b8ff5);
+            padding: 24px 20px 20px;
+            flex-shrink: 0;
+        }
+
+        .header-top {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .back-btn {
+            width: 34px; height: 34px;
+            background: rgba(255,255,255,0.2);
+            border: none; border-radius: 50%;
+            color: white; font-size: 18px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .ai-avatar {
+            width: 40px; height: 40px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px;
+        }
+
+        .header-info { flex: 1; }
+        .header-title { color: white; font-size: 16px; font-weight: 800; }
+        .header-status { color: rgba(255,255,255,0.7); font-size: 11px; margin-top: 2px; }
+
+        .stats-bar {
+            background: rgba(255,255,255,0.15);
+            border-radius: 14px;
+            padding: 10px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stat-item { text-align: center; }
+        .stat-val { color: white; font-size: 13px; font-weight: 800; }
+        .stat-lbl { color: rgba(255,255,255,0.7); font-size: 9px; font-weight: 600; }
+        .stat-div { width: 1px; height: 24px; background: rgba(255,255,255,0.2); }
+
+        /* MESSAGES */
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 14px 14px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .msg {
+            max-width: 88%;
+            padding: 11px 14px;
+            border-radius: 18px;
+            font-size: 13px;
+            line-height: 1.55;
+        }
+
+        .msg.ai {
+            background: white;
+            border: 1px solid #e8eaff;
+            border-bottom-left-radius: 4px;
+            align-self: flex-start;
+            color: #2d3561;
+            box-shadow: 0 2px 10px rgba(100,120,200,0.08);
+        }
+
+        .msg.user {
+            background: linear-gradient(135deg, #6c7fe8, #9b8ff5);
+            color: white;
+            border-bottom-right-radius: 4px;
+            align-self: flex-end;
+            font-weight: 600;
+        }
+
+        .msg.typing {
+            background: white;
+            border: 1px solid #e8eaff;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+            display: flex;
+            align-items: center;
+            padding: 14px 18px;
+        }
+
+        .dots span {
+            display: inline-block;
+            width: 7px; height: 7px;
+            background: #9aa0c0;
+            border-radius: 50%;
+            margin: 0 2px;
+            animation: bounce 1.2s infinite;
+        }
+
+        .dots span:nth-child(2) { animation-delay: 0.2s; }
+        .dots span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: translateY(0); opacity: 0.5; }
+            40% { transform: translateY(-6px); opacity: 1; }
+        }
+
+        /* ── CARD CAROUSEL ── */
+        .carousel-wrap {
+            align-self: flex-start;
+            width: 100%;
+            max-width: 320px;
+        }
+
+        .carousel-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #9aa0c0;
+            margin-bottom: 10px;
+            letter-spacing: 0.5px;
+        }
+
+        .carousel {
+            position: relative;
+            height: 180px;
+            margin-bottom: 12px;
+        }
+
+        .sol-card {
+            position: absolute;
+            width: 200px;
+            height: 160px;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: flex-end;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+            user-select: none;
+        }
+
+        .sol-card .card-num {
+            position: absolute;
+            top: 14px; right: 16px;
+            font-size: 11px;
+            font-weight: 800;
+            opacity: 0.6;
+            color: white;
+        }
+
+        .sol-card .card-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .sol-card .card-title {
+            font-size: 13px;
+            font-weight: 800;
+            color: white;
+            line-height: 1.3;
+        }
+
+        .sol-card .card-saving {
+            font-size: 11px;
+            font-weight: 700;
+            color: rgba(255,255,255,0.75);
+            margin-top: 4px;
+        }
+
+        /* Stacked positions */
+        .sol-card[data-pos="0"] {
+            left: 0px;
+            top: 20px;
+            transform: rotate(-8deg) scale(0.85);
+            z-index: 1;
+            opacity: 0.7;
+        }
+
+        .sol-card[data-pos="1"] {
+            left: 20px;
+            top: 12px;
+            transform: rotate(-4deg) scale(0.9);
+            z-index: 2;
+            opacity: 0.8;
+        }
+
+        .sol-card[data-pos="2"] {
+            left: 40px;
+            top: 6px;
+            transform: rotate(-1deg) scale(0.95);
+            z-index: 3;
+            opacity: 0.9;
+        }
+
+        .sol-card[data-pos="3"] {
+            left: 60px;
+            top: 0px;
+            transform: rotate(0deg) scale(1);
+            z-index: 10;
+            opacity: 1;
+            box-shadow: 0 16px 50px rgba(0,0,0,0.25);
+        }
+
+        /* Beyond front — hidden to right */
+        .sol-card[data-pos="4"],
+        .sol-card[data-pos="5"],
+        .sol-card[data-pos="6"] {
+            left: 220px;
+            top: 0;
+            transform: scale(0.8);
+            z-index: 0;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Card color themes */
+       .sol-card.c0 { background: linear-gradient(135deg, #6c7fe8, #9b8ff5); }
+.sol-card.c1 { background: linear-gradient(135deg, #6c7fe8, #9b8ff5); }
+.sol-card.c2 { background: linear-gradient(135deg, #6c7fe8, #9b8ff5); }
+.sol-card.c3 { background: linear-gradient(135deg, #6c7fe8, #9b8ff5); }
+.sol-card.c4 { background: linear-gradient(135deg, #6c7fe8, #9b8ff5); }
+.sol-card.c5 { background: linear-gradient(135deg, #6c7fe8, #9b8ff5); }
+
+        /* NAV DOTS */
+        .carousel-dots {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+            margin-top: 4px;
+        }
+
+        .cdot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: #c0c8e8;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .cdot.active {
+            background: #6c7fe8;
+            width: 18px;
+            border-radius: 3px;
+        }
+
+        /* Selected card detail */
+        .card-detail {
+            background: white;
+            border-radius: 16px;
+            padding: 14px 16px;
+            border: 1px solid #e0e4ff;
+            font-size: 12px;
+            color: #4a5080;
+            line-height: 1.6;
+            box-shadow: 0 2px 12px rgba(100,120,200,0.08);
+            margin-top: 2px;
+            align-self: flex-start;
+            max-width: 310px;
+            animation: fadeUp 0.3s ease both;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card-detail strong { color: #2d3561; }
+
+        /* SUGGESTIONS */
+        .suggestions {
+            display: flex;
+            gap: 8px;
+            padding: 8px 14px;
+            overflow-x: auto;
+            flex-shrink: 0;
+        }
+
+        .suggestions::-webkit-scrollbar { display: none; }
+
+        .chip {
+            background: white;
+            border: 1.5px solid #e0e4ff;
+            border-radius: 20px;
+            padding: 6px 13px;
+            font-size: 11px; font-weight: 700;
+            color: #6c7fe8; white-space: nowrap;
+            cursor: pointer; flex-shrink: 0;
+            transition: background 0.2s;
+            font-family: 'Nunito', sans-serif;
+        }
+
+        .chip:active { background: #eef0ff; }
+
+        /* INPUT */
+        .input-area {
+            background: white;
+            border-top: 1px solid #eef0ff;
+            padding: 10px 14px 16px;
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+            flex-shrink: 0;
+        }
+
+        .input-field {
+            flex: 1;
+            background: #f0f2ff;
+            border: 1.5px solid #e0e4ff;
+            border-radius: 20px;
+            padding: 10px 16px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 13px; color: #2d3561;
+            outline: none; resize: none;
+            max-height: 80px; line-height: 1.4;
+            transition: border-color 0.3s;
+        }
+
+        .input-field:focus { border-color: #6c7fe8; }
+        .input-field::placeholder { color: #b0b8d8; }
+
+        .send-btn {
+            width: 40px; height: 40px;
+            background: linear-gradient(135deg, #6c7fe8, #9b8ff5);
+            border: none; border-radius: 50%;
+            color: white; font-size: 16px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 4px 14px rgba(108,127,232,0.35);
+            transition: transform 0.15s;
+        }
+
+        .send-btn:active { transform: scale(0.92); }
+
+        /* BOTTOM NAV */
+        .bottom-nav {
+            background: white;
+            display: flex; justify-content: space-around;
+            padding: 14px 10px 20px;
+            border-top: 1px solid #eef0ff;
+            flex-shrink: 0;
+        }
+
+        .nav-btn {
+            display: flex; flex-direction: column;
+            align-items: center; gap: 4px;
+            cursor: pointer; padding: 6px 14px;
+            border-radius: 16px; transition: background 0.2s;
+        }
+
+        .nav-btn.active { background: #eef0ff; }
+        .nav-btn svg { width: 22px; height: 22px; }
+        .nav-btn.active svg { stroke: #6c7fe8; }
+        .nav-btn:not(.active) svg { stroke: #b0b8d8; }
+        .nav-label { font-size: 10px; font-weight: 700; }
+        .nav-btn.active .nav-label { color: #6c7fe8; }
+        .nav-btn:not(.active) .nav-label { color: #b0b8d8; }
+    </style>
+    <link rel="manifeest" href="manifest.json">
+    <meta name="theme-color" content="#6c7fe8">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-title" content="Gasto Energetico">
+    <link rel="apple-touch-icon" href="usc.jpg">
+</head>
+<body>
+
+<div class="phone">
+
+    <div class="header">
+        <div class="header-top">
+            <button class="back-btn" onclick="window.location.href='index.html'">&#8592;</button>
+            <div class="ai-avatar">🤖</div>
+            <div class="header-info">
+                <div class="header-title">Soporte AI</div>
+                <div class="header-status" id="headerStatus">● En línea</div>
+            </div>
+        </div>
+        <div class="stats-bar">
+            <div class="stat-item">
+                <div class="stat-val" id="hdrKwh">0</div>
+                <div class="stat-lbl">kWh/mes</div>
+            </div>
+            <div class="stat-div"></div>
+            <div class="stat-item">
+                <div class="stat-val" id="hdrCost">$0</div>
+                <div class="stat-lbl">COP/mes</div>
+            </div>
+            <div class="stat-div"></div>
+            <div class="stat-item">
+                <div class="stat-val" id="hdrEfic">0%</div>
+                <div class="stat-lbl">Eficiencia</div>
+            </div>
+            <div class="stat-div"></div>
+            <div class="stat-item">
+                <div class="stat-val" id="hdrRooms">0</div>
+                <div class="stat-lbl">Habitaciones</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="messages" id="messages"></div>
+
+    <div class="suggestions" id="suggestions">
+        <div class="chip" onclick="sendChip('Analiza mi consumo')">🔍 Analizar</div>
+        <div class="chip" onclick="sendChip('Cual dispositivo gasta mas?')">⚡ Mayor gasto</div>
+        <div class="chip" onclick="sendChip('Dame soluciones para ahorrar')">💡 Soluciones</div>
+        <div class="chip" onclick="sendChip('Cuanto podria ahorrar?')">💰 Ahorro</div>
+        <div class="chip" onclick="sendChip('Mi eficiencia es buena?')">📊 Eficiencia</div>
+    </div>
+
+    <div class="input-area">
+        <textarea class="input-field" id="inputField" placeholder="Pregunta sobre tu consumo..." rows="1"
+            onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+        <button class="send-btn" onclick="sendMessage()">&#10148;</button>
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-btn" onclick="window.location.href='dashboard.html'">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            </svg>
+            <span class="nav-label">Inicio</span>
+        </div>
+        <div class="nav-btn" onclick="window.location.href='escaner.html'">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <span class="nav-label">Dispositivos</span>
+        </div>
+        <div class="nav-btn" onclick="window.location.href='configuracion.html'">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+            </svg>
+            <span class="nav-label">Configuración</span>
+        </div>
+        <div class="nav-btn active">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
+            </svg>
+            <span class="nav-label">Soporte AI</span>
+        </div>
+    </div>
+
+</div>
+
+<script>
+var usuario = localStorage.getItem('sesionActiva');
+if (!usuario) { window.location.href = 'index.html'; }
+
+function getDato(clave) {
+    return localStorage.getItem(usuario + '_' + clave) || '0';
+}
+
+function cargarDatos() {
+    var r = [];
+    try {
+        var raw = getDato('escaner_rooms');
+        if (raw && raw !== '0') r = JSON.parse(raw);
+    } catch(e) {}
+    return {
+        consumoTotal: parseFloat(getDato('consumoTotal')) || 0,
+        consumoHoy:   parseFloat(getDato('consumoHoy'))   || 0,
+        costoTotal:   parseFloat(getDato('costoTotal'))   || 0,
+        eficiencia:   parseFloat(getDato('eficiencia'))   || 0,
+        tipoVivienda: getDato('tipoVivienda') || 'No configurado',
+        rooms: r
+    };
+}
+
+function actualizarHeader() {
+    var d = cargarDatos();
+    document.getElementById('hdrKwh').textContent   = d.consumoTotal;
+    document.getElementById('hdrCost').textContent  = 'COP $' + Math.round(d.costoTotal).toLocaleString('es-CO');
+    document.getElementById('hdrEfic').textContent  = d.eficiencia + '%';
+    document.getElementById('hdrRooms').textContent = d.rooms.length;
+}
+
+actualizarHeader();
+setInterval(actualizarHeader, 3000);
+document.addEventListener('visibilitychange', function() {
+    if (!document.hidden) actualizarHeader();
+});
+
+function calcDeviceKwh(d) { return (d.watts / 1000) * d.hours * 30; }
+
+function getAllDevicesSorted(rooms) {
+    var all = [];
+    rooms.forEach(function(room) {
+        if (room.devices) {
+            room.devices.forEach(function(d) {
+                all.push({ name: d.name, kwh: calcDeviceKwh(d), watts: d.watts, hours: d.hours, room: room.name });
+            });
+        }
+    });
+    return all.sort(function(a, b) { return b.kwh - a.kwh; });
+}
+
+// ── GENERAR TARJETAS DE SOLUCIONES ──
+function generarSoluciones(pregunta) {
+    var d = cargarDatos();
+    var p = pregunta.toLowerCase();
+    var sorted = getAllDevicesSorted(d.rooms);
+
+    var soluciones = [];
+
+    // Soluciones basadas en dispositivos reales
+    sorted.slice(0, 3).forEach(function(dev, i) {
+        var ahorroHoras = Math.round((dev.watts / 1000) * 2 * 30 * 900);
+        soluciones.push({
+            icon: '⏱️',
+            title: 'Reduce ' + dev.name,
+            desc: 'Usa tu <strong>' + dev.name + '</strong> 2 horas menos al día. Actualmente lo usas ' + dev.hours + 'h/día consumiendo ' + dev.kwh.toFixed(1) + ' kWh/mes. Reducirlo te ahorraría <strong>COP $' + ahorroHoras.toLocaleString('es-CO') + '/mes</strong>.',
+            saving: 'Ahorro: COP $' + ahorroHoras.toLocaleString('es-CO') + '/mes'
+        });
+    });
+
+    // Soluciones generales siempre disponibles
+    var ahorroLED = Math.round(d.costoTotal * 0.1);
+    soluciones.push({
+        icon: '💡',
+        title: 'Cambia a LED',
+        desc: 'Reemplaza todas las bombillas incandescentes por LED. Consumen hasta un <strong>80% menos</strong> y duran 10 veces más. Ahorro estimado: <strong>COP $' + ahorroLED.toLocaleString('es-CO') + '/mes</strong>.',
+        saving: 'Ahorro: COP $' + ahorroLED.toLocaleString('es-CO') + '/mes'
+    });
+
+    var ahorroStandby = Math.round(d.costoTotal * 0.08);
+    soluciones.push({
+        icon: '🔌',
+        title: 'Elimina el standby',
+        desc: 'Desconecta los dispositivos que no uses. En standby consumen hasta un <strong>8% de tu factura</strong> sin que te des cuenta. Usa regletas con interruptor para apagarlos todos de una vez.',
+        saving: 'Ahorro: COP $' + ahorroStandby.toLocaleString('es-CO') + '/mes'
+    });
+
+    var ahorroHorario = Math.round(d.costoTotal * 0.12);
+    soluciones.push({
+        icon: '🌙',
+        title: 'Cambia horario de uso',
+        desc: 'Usa electrodomésticos de alto consumo (lavadora, horno) en horas de bajo pico: antes de las 8am o después de las 9pm. Esto puede reducir tu factura hasta un <strong>12%</strong>.',
+        saving: 'Ahorro: COP $' + ahorroHorario.toLocaleString('es-CO') + '/mes'
+    });
+
+    if (d.tipoVivienda === 'casa' || d.tipoVivienda === 'edificio') {
+        var ahorroVent = Math.round(d.costoTotal * 0.15);
+        soluciones.push({
+            icon: '🌡️',
+            title: 'Optimiza climatización',
+            desc: 'Mantén el aire acondicionado entre 22-24°C. Cada grado de más aumenta el consumo un <strong>8%</strong>. Usa ventiladores de techo como complemento para distribuir mejor el aire frío.',
+            saving: 'Ahorro: COP $' + ahorroVent.toLocaleString('es-CO') + '/mes'
+        });
+    }
+
+    soluciones.push({
+        icon: '☀️',
+        title: 'Aprovecha luz natural',
+        desc: 'Abre cortinas y persianas durante el día para eliminar el uso de luminarias. En promedio las luces representan el <strong>15% de la factura</strong>. Maximizar la luz natural es el ahorro más fácil.',
+        saving: 'Ahorro: COP $' + Math.round(d.costoTotal * 0.15).toLocaleString('es-CO') + '/mes'
+    });
+
+    return soluciones.slice(0, 6);
+}
+
+// ── RESPUESTA TEXTO NORMAL ──
+function generarRespuestaTexto(pregunta) {
+    var d = cargarDatos();
+    var p = pregunta.toLowerCase();
+    var sorted = getAllDevicesSorted(d.rooms);
+    var mayor = sorted[0] || null;
+
+    if (d.consumoTotal === 0 && d.rooms.length === 0) {
+        return 'Aun no tienes datos. Ve a Dispositivos para agregar tus habitaciones y aparatos, o a Configuracion para seleccionar tu tipo de vivienda.';
+    }
+
+    if (p.includes('analiz') || p.includes('situacion') || p.includes('consumo')) {
+        var r = 'Tu consumo es ' + d.consumoTotal + ' kWh/mes con un costo de COP $' + Math.round(d.costoTotal).toLocaleString('es-CO') + '. ';
+        r += d.eficiencia >= 70 ? 'Tu eficiencia del ' + d.eficiencia + '% es buena. ' : 'Tu eficiencia del ' + d.eficiencia + '% es mejorable. ';
+        if (mayor) r += 'El mayor consumidor es ' + mayor.name + ' con ' + mayor.kwh.toFixed(1) + ' kWh/mes.';
+        return r;
+    }
+
+    if (p.includes('mayor') || p.includes('mas gasta') || p.includes('mas consume')) {
+        if (!mayor) return 'No tienes dispositivos registrados aun. Agrega tus aparatos en Dispositivos.';
+        return 'El que mas gasta es tu ' + mayor.name + ' en ' + mayor.room + ' con ' + mayor.kwh.toFixed(1) + ' kWh/mes (' + mayor.watts + 'W x ' + mayor.hours + 'h/dia). Reducirlo 2h/dia te ahorraría COP $' + Math.round((mayor.watts / 1000) * 2 * 30 * 900).toLocaleString('es-CO') + '/mes.';
+    }
+
+    if (p.includes('ahorrar') || p.includes('ahorro') || p.includes('cuanto')) {
+        var kwh25 = d.consumoTotal * 0.25;
+        var cop25 = Math.round(kwh25 * 900);
+        return 'Con habitos de ahorro podrias reducir un 25% tu consumo: ' + kwh25.toFixed(0) + ' kWh menos al mes = COP $' + cop25.toLocaleString('es-CO') + ' de ahorro. Al año serían COP $' + (cop25 * 12).toLocaleString('es-CO') + '.';
+    }
+
+    if (p.includes('eficiencia') || p.includes('eficiente')) {
+        var msg = 'Tu eficiencia es del ' + d.eficiencia + '%. ';
+        if (d.eficiencia >= 85) msg += 'Excelente, estas aprovechando muy bien tu energia.';
+        else if (d.eficiencia >= 70) msg += 'Es buena pero puedes mejorarla. Revisa los dispositivos de mayor consumo.';
+        else msg += 'Es baja. Hay bastante margen de mejora, sobre todo en los dispositivos de alto consumo.';
+        return msg;
+    }
+
+    if (p.includes('hola') || p.includes('buenas') || p.includes('hey')) {
+        return 'Hola ' + usuario + '! Tienes ' + d.rooms.length + ' habitacion(es) con ' + d.consumoTotal + ' kWh/mes y eficiencia del ' + d.eficiencia + '%. En que te puedo ayudar?';
+    }
+
+    return 'Puedo ayudarte a analizar tu consumo, identificar que dispositivo gasta mas, darte soluciones de ahorro personalizadas o calcular cuanto podrias ahorrar. Que quieres saber?';
+}
+
+// Detecta si la pregunta debe mostrar carrusel de soluciones
+function esPreguntaDeSoluciones(p) {
+    var lower = p.toLowerCase();
+    return lower.includes('solucion') || lower.includes('consejo') || lower.includes('tip') ||
+           lower.includes('reducir') || lower.includes('bajar') || lower.includes('menos') ||
+           lower.includes('mejorar') || lower.includes('como ahorro') || lower.includes('que hago') ||
+           lower.includes('ayuda') || lower.includes('recomend');
+}
+
+// ── RENDERIZAR CARRUSEL ──
+function renderCarrusel(soluciones) {
+    var wrap = document.createElement('div');
+    wrap.className = 'carousel-wrap';
+
+    var label = document.createElement('div');
+    label.className = 'carousel-label';
+    label.textContent = '💡 ' + soluciones.length + ' soluciones para ti — toca una para ver detalles';
+    wrap.appendChild(label);
+
+    var carousel = document.createElement('div');
+    carousel.className = 'carousel';
+
+    var activeIdx = soluciones.length - 1; // La última es la del frente
+
+    soluciones.forEach(function(sol, i) {
+        var card = document.createElement('div');
+        card.className = 'sol-card c' + (i % 6);
+        card.innerHTML =
+            '<div class="card-num">' + (i + 1) + '/' + soluciones.length + '</div>' +
+            '<div class="card-icon">' + sol.icon + '</div>' +
+            '<div class="card-title">' + sol.title + '</div>' +
+            '<div class="card-saving">' + sol.saving + '</div>';
+
+        card.dataset.idx = i;
+        card.addEventListener('click', function() {
+            moverAlFrente(parseInt(this.dataset.idx), carousel, soluciones, dots, detailBox);
+        });
+
+        carousel.appendChild(card);
+    });
+
+    wrap.appendChild(carousel);
+
+    // Dots
+    var dots = document.createElement('div');
+    dots.className = 'carousel-dots';
+    soluciones.forEach(function(_, i) {
+        var dot = document.createElement('div');
+        dot.className = 'cdot' + (i === activeIdx ? ' active' : '');
+        dot.addEventListener('click', function() {
+            moverAlFrente(i, carousel, soluciones, dots, detailBox);
+        });
+        dots.appendChild(dot);
+    });
+    wrap.appendChild(dots);
+
+    // Detail box
+    var detailBox = document.createElement('div');
+    detailBox.className = 'card-detail';
+    detailBox.innerHTML = soluciones[activeIdx].desc;
+    wrap.appendChild(detailBox);
+
+    // Set initial positions
+    actualizarPosiciones(carousel, activeIdx, soluciones.length);
+
+    document.getElementById('messages').appendChild(wrap);
+    scrollBottom();
+}
+
+function actualizarPosiciones(carousel, activeIdx, total) {
+    var cards = carousel.querySelectorAll('.sol-card');
+    cards.forEach(function(card) {
+        var idx = parseInt(card.dataset.idx);
+        var dist = activeIdx - idx; // positivo = detras, negativo = adelante
+        var pos;
+        if (dist === 0) pos = 3;       // frente
+        else if (dist === 1) pos = 2;
+        else if (dist === 2) pos = 1;
+        else if (dist === 3) pos = 0;
+        else pos = 4;                  // oculto
+        card.setAttribute('data-pos', pos);
+    });
+}
+
+function moverAlFrente(idx, carousel, soluciones, dots, detailBox) {
+    actualizarPosiciones(carousel, idx, soluciones.length);
+
+    // Actualizar dots
+    var allDots = dots.querySelectorAll('.cdot');
+    allDots.forEach(function(d, i) {
+        d.className = 'cdot' + (i === idx ? ' active' : '');
+    });
+
+    // Actualizar detalle
+    detailBox.innerHTML = soluciones[idx].desc;
+    detailBox.style.animation = 'none';
+    detailBox.offsetHeight; // reflow
+    detailBox.style.animation = '';
+
+    scrollBottom();
+}
+
+// ── ENVIAR MENSAJE ──
+var isLoading = false;
+
+function sendMessage() {
+    var input = document.getElementById('inputField');
+    var text = input.value.trim();
+    if (!text || isLoading) return;
+
+    input.value = '';
+    autoResize(input);
+    document.getElementById('suggestions').style.display = 'none';
+
+    // Mensaje del usuario
+    var userEl = document.createElement('div');
+    userEl.className = 'msg user';
+    userEl.textContent = text;
+    document.getElementById('messages').appendChild(userEl);
+    scrollBottom();
+
+    isLoading = true;
+    document.getElementById('headerStatus').textContent = '⏳ Analizando...';
+
+    // Typing
+    var typingEl = document.createElement('div');
+    typingEl.className = 'msg typing';
+    typingEl.innerHTML = '<div class="dots"><span></span><span></span><span></span></div>';
+    document.getElementById('messages').appendChild(typingEl);
+    scrollBottom();
+
+    var delay = 700 + Math.random() * 500;
+
+    setTimeout(function() {
+        typingEl.remove();
+
+        if (esPreguntaDeSoluciones(text)) {
+            // Mensaje intro
+            var introEl = document.createElement('div');
+            introEl.className = 'msg ai';
+            introEl.textContent = 'Aqui tienes soluciones personalizadas para reducir tu consumo. Toca cada tarjeta para ver los detalles:';
+            document.getElementById('messages').appendChild(introEl);
+
+            // Carrusel
+            var soluciones = generarSoluciones(text);
+            renderCarrusel(soluciones);
+        } else {
+            var respEl = document.createElement('div');
+            respEl.className = 'msg ai';
+            respEl.textContent = generarRespuestaTexto(text);
+            document.getElementById('messages').appendChild(respEl);
+            scrollBottom();
+        }
+
+        isLoading = false;
+        document.getElementById('headerStatus').textContent = '● En línea';
+    }, delay);
+}
+
+function sendChip(text) {
+    document.getElementById('inputField').value = text;
+    sendMessage();
+}
+
+function scrollBottom() {
+    var m = document.getElementById('messages');
+    m.scrollTop = m.scrollHeight;
+}
+
+function handleKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+    }
+}
+
+function autoResize(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 80) + 'px';
+}
+
+// Bienvenida
+(function() {
+    var d = cargarDatos();
+    var el = document.createElement('div');
+    el.className = 'msg ai';
+    el.textContent = 'Hola ' + usuario + '! Tengo acceso a tu informacion energetica. Tienes ' +
+        d.rooms.length + ' habitacion(es) con ' + d.consumoTotal + ' kWh/mes y eficiencia del ' +
+        d.eficiencia + '%. Pide "soluciones" para ver tarjetas con consejos personalizados!';
+    document.getElementById('messages').appendChild(el);
+})();
+</script>
+<script>
+    if ('serviceworker' in navigator) {
+        navigation.serviceworker.register('./sw.js');
+    }
+</script>
+</body>
+</html>

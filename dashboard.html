@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gasto Energético</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: #e8eaf6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .phone {
+            width: 360px;
+            min-height: 780px;
+            background: #f0f2ff;
+            border-radius: 40px;
+            overflow: hidden;
+            box-shadow: 0 30px 80px rgba(90,100,200,0.25);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #6c7fe8, #9b8ff5);
+            padding: 28px 24px 40px;
+            position: relative;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .header-left { display: flex; flex-direction: column; }
+
+        .app-title {
+            color: rgba(255,255,255,0.85);
+            font-size: 13px; font-weight: 600;
+            letter-spacing: 1px; text-transform: uppercase;
+        }
+
+        .user-greeting {
+            color: rgba(255,255,255,0.65);
+            font-size: 11px; font-weight: 600;
+            margin-top: 2px;
+        }
+
+        .header-right { display: flex; align-items: center; gap: 8px; }
+
+        .logout-btn {
+            background: rgba(255,255,255,0.15);
+            border: none; border-radius: 20px;
+            color: white; font-size: 11px; font-weight: 700;
+            padding: 5px 12px; cursor: pointer;
+            font-family: 'Nunito', sans-serif;
+        }
+
+        .bell {
+            width: 36px; height: 36px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .bell:active { background: rgba(255,255,255,0.35); }
+        .bell svg { width: 18px; height: 18px; fill: white; }
+
+        .balance-label { color: rgba(255,255,255,0.7); font-size: 13px; margin-bottom: 6px; }
+
+        .balance { color: white; font-size: 36px; font-weight: 800; letter-spacing: -1px; }
+        .balance span { font-size: 18px; font-weight: 600; opacity: 0.8; }
+
+        .stats-row {
+            display: flex; gap: 12px;
+            padding: 0 20px; margin-top: -24px;
+            z-index: 10; position: relative;
+        }
+
+        .stat-card {
+            flex: 1; background: white;
+            border-radius: 18px; padding: 16px 12px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(100,120,200,0.12);
+        }
+
+        .stat-icon {
+            width: 38px; height: 38px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 8px; font-size: 18px;
+        }
+
+        .stat-icon.blue   { background: #e8eeff; }
+        .stat-icon.purple { background: #f0ebff; }
+        .stat-icon.green  { background: #e8fff4; }
+
+        .stat-value { font-size: 15px; font-weight: 800; color: #2d3561; }
+        .stat-label { font-size: 10px; color: #9aa0c0; font-weight: 600; margin-top: 2px; }
+
+        .body { padding: 20px; flex: 1; display: flex; flex-direction: column; gap: 20px; }
+
+        .progress-section {
+            background: white; border-radius: 24px; padding: 20px;
+            box-shadow: 0 4px 20px rgba(100,120,200,0.08);
+        }
+
+        .section-title { font-size: 14px; font-weight: 700; color: #2d3561; margin-bottom: 16px; }
+
+        .progress-container { display: flex; align-items: center; gap: 20px; }
+
+        .circle-wrap { position: relative; width: 100px; height: 100px; flex-shrink: 0; }
+
+        svg.ring { width: 100px; height: 100px; transform: rotate(-90deg); }
+
+        .ring-bg { fill: none; stroke: #eef0ff; stroke-width: 10; }
+        .ring-fill {
+            fill: none; stroke: url(#grad); stroke-width: 10;
+            stroke-linecap: round; stroke-dasharray: 251; stroke-dashoffset: 251;
+            transition: stroke-dashoffset 1s ease;
+        }
+
+        .circle-label {
+            position: absolute; inset: 0;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+        }
+
+        .circle-pct { font-size: 22px; font-weight: 800; color: #2d3561; }
+        .circle-sub { font-size: 9px; color: #9aa0c0; font-weight: 600; }
+
+        .progress-info { flex: 1; }
+
+        .info-row {
+            display: flex; justify-content: space-between;
+            align-items: center; margin-bottom: 10px;
+        }
+
+        .info-dot { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #6b7196; font-weight: 600; }
+        .dot { width: 8px; height: 8px; border-radius: 50%; }
+        .dot.blue  { background: #6c7fe8; }
+        .dot.light { background: #c5caf5; }
+        .info-val  { font-size: 13px; font-weight: 800; color: #2d3561; }
+
+        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+        .menu-card {
+            background: white; border-radius: 20px; padding: 18px 16px;
+            box-shadow: 0 4px 20px rgba(100,120,200,0.08);
+            cursor: pointer; transition: transform 0.15s, box-shadow 0.15s;
+            text-decoration: none;
+        }
+
+        .menu-card:hover { transform: translateY(-3px); box-shadow: 0 8px 28px rgba(100,120,200,0.18); }
+        .menu-card:active { transform: scale(0.97); }
+
+        .card-icon {
+            width: 44px; height: 44px; border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px; margin-bottom: 12px;
+        }
+
+        .card-icon.i1 { background: linear-gradient(135deg, #6c7fe8, #9b8ff5); }
+        .card-icon.i2 { background: linear-gradient(135deg, #43c6ac, #56e0c5); }
+        .card-icon.i3 { background: linear-gradient(135deg, #f7971e, #ffd200); }
+        .card-icon.i4 { background: linear-gradient(135deg, #f953c6, #b91d73); }
+
+        .card-name { font-size: 14px; font-weight: 800; color: #2d3561; }
+        .card-desc { font-size: 11px; color: #9aa0c0; font-weight: 600; margin-top: 3px; }
+
+        .bottom-nav {
+            background: white; display: flex; justify-content: space-around;
+            padding: 14px 10px 20px; border-top: 1px solid #eef0ff;
+        }
+
+        .nav-btn {
+            display: flex; flex-direction: column; align-items: center;
+            gap: 4px; cursor: pointer; padding: 6px 14px;
+            border-radius: 16px; transition: background 0.2s;
+        }
+
+        .nav-btn.active { background: #eef0ff; }
+        .nav-btn svg { width: 22px; height: 22px; }
+        .nav-btn.active svg { stroke: #6c7fe8; }
+        .nav-btn:not(.active) svg { stroke: #b0b8d8; }
+        .nav-label { font-size: 10px; font-weight: 700; }
+        .nav-btn.active .nav-label  { color: #6c7fe8; }
+        .nav-btn:not(.active) .nav-label { color: #b0b8d8; }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .stats-row       { animation: fadeUp 0.5s ease 0.1s both; }
+        .progress-section{ animation: fadeUp 0.5s ease 0.2s both; }
+        .menu-grid       { animation: fadeUp 0.5s ease 0.3s both; }
+
+        /* ── MODAL USC ── */
+        .modal-overlay {
+            display: none;
+            position: fixed; inset: 0;
+            background: rgba(30,30,60,0.65);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.open { display: flex; }
+
+        .modal-box {
+            background: white;
+            border-radius: 28px;
+            padding: 32px 24px 24px;
+            width: 300px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: modalIn 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+        }
+
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.8) translateY(20px); }
+            to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .modal-logo {
+            width: 160px;
+            height: 160px;
+            object-fit: contain;
+            margin-bottom: 16px;
+        }
+
+        .modal-title {
+            font-size: 15px;
+            font-weight: 800;
+            color: #2d3561;
+            margin-bottom: 6px;
+        }
+
+        .modal-sub {
+            font-size: 12px;
+            color: #9aa0c0;
+            font-weight: 600;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .modal-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #c9a227, #f0d060);
+            color: #5a3e00;
+            font-size: 11px;
+            font-weight: 800;
+            padding: 5px 14px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            letter-spacing: 0.5px;
+        }
+
+        .modal-close {
+            width: 100%;
+            padding: 13px;
+            background: linear-gradient(135deg, #6c7fe8, #9b8ff5);
+            border: none;
+            border-radius: 14px;
+            color: white;
+            font-family: 'Nunito', sans-serif;
+            font-size: 14px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: transform 0.15s;
+        }
+
+        .modal-close:active { transform: scale(0.97); }
+    </style>
+    <link rel="manifeest" href="manifest.json">
+    <meta name="theme-color" content="#6c7fe8">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-title" content="Gasto Energetico">
+    <link rel="apple-touch-icon" href="usc.jpg">
+</head>
+<body>
+
+<div class="phone">
+
+    <div class="header">
+        <div class="header-top">
+            <div class="header-left">
+                <div class="app-title">Gasto Energético</div>
+                <div class="user-greeting" id="userGreeting">Hola, usuario</div>
+            </div>
+            <div class="header-right">
+                <button class="logout-btn" onclick="cerrarSesion()">Salir</button>
+                <div class="bell" onclick="abrirModal()">
+                    <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                </div>
+            </div>
+        </div>
+        <div class="balance-label">Consumo total del mes</div>
+        <div class="balance"><span>kWh </span><span id="balanceVal">0</span></div>
+    </div>
+
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-icon blue">📊</div>
+            <div class="stat-value" id="statPct">0%</div>
+            <div class="stat-label">vs mes ant.</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon purple">⚡</div>
+            <div class="stat-value" id="statHoy">0 kWh</div>
+            <div class="stat-label">Hoy</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon green">💰</div>
+            <div class="stat-value" id="statCosto">COP $0</div>
+            <div class="stat-label">Costo</div>
+        </div>
+    </div>
+
+    <div class="body">
+
+        <div class="progress-section">
+            <div class="section-title">Eficiencia energética</div>
+            <div class="progress-container">
+                <div class="circle-wrap">
+                    <svg class="ring" viewBox="0 0 100 100">
+                        <defs>
+                            <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%"   style="stop-color:#6c7fe8"/>
+                                <stop offset="100%" style="stop-color:#9b8ff5"/>
+                            </linearGradient>
+                        </defs>
+                        <circle class="ring-bg"   cx="50" cy="50" r="40"/>
+                        <circle class="ring-fill" cx="50" cy="50" r="40"/>
+                    </svg>
+                    <div class="circle-label">
+                        <div class="circle-pct" id="circPct">0%</div>
+                        <div class="circle-sub">Eficiencia</div>
+                    </div>
+                </div>
+                <div class="progress-info">
+                    <div class="info-row">
+                        <div class="info-dot"><div class="dot blue"></div>Consumido</div>
+                        <div class="info-val" id="infoConsumed">0 kWh</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-dot"><div class="dot light"></div>Disponible</div>
+                        <div class="info-val" id="infoAvail">0 kWh</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="menu-grid">
+            <div class="menu-card" onclick="window.location.href='dashboard.html'">
+                <div class="card-icon i1">🏠</div>
+                <div class="card-name">Inicio</div>
+                <div class="card-desc">Panel principal</div>
+            </div>
+            <div class="menu-card" onclick="window.location.href='escaner.html'">
+                <div class="card-icon i2">📡</div>
+                <div class="card-name">Dispositivos</div>
+                <div class="card-desc">Dispositivos Vinculados</div>
+            </div>
+            <div class="menu-card" onclick="window.location.href='configuracion.html'">
+                <div class="card-icon i3">⚙️</div>
+                <div class="card-name">Configuración</div>
+                <div class="card-desc">Ajuste estándar</div>
+            </div>
+            <div class="menu-card" onclick="window.location.href='soporte.html'">
+                <div class="card-icon i4">🤖</div>
+                <div class="card-name">Soporte AI</div>
+                <div class="card-desc">Asistente inteligente</div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-btn active" onclick="window.location.href='dashboard.html'">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            </svg>
+            <span class="nav-label">Inicio</span>
+        </div>
+        <div class="nav-btn" onclick="window.location.href='escaner.html'">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <span class="nav-label">Dispositivos</span>
+        </div>
+        <div class="nav-btn" onclick="window.location.href='configuracion.html'">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+            </svg>
+            <span class="nav-label">Configuración</span>
+        </div>
+        <div class="nav-btn" onclick="window.location.href='soporte.html'">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
+            </svg>
+            <span class="nav-label">Soporte AI</span>
+        </div>
+    </div>
+
+</div>
+
+<!-- MODAL USC -->
+<div class="modal-overlay" id="modalUSC" onclick="cerrarModal()">
+    <div class="modal-box" onclick="event.stopPropagation()">
+        <img class="modal-logo" src="usc.png.jpeg" alt="USC Logo"
+             onerror="this.style.fontSize='60px'; this.style.display='block'; this.textContent='🦉'; this.removeAttribute('src');">
+        <div class="modal-title">Acreditación Institucional en Alta Calidad</div>
+        <div class="modal-sub">Universidad Santiago de Cali<br>Universitas · Excellentia</div>
+        <div class="modal-badge">🏅 Somos calidad, USC</div>
+        <button class="modal-close" onclick="cerrarModal()">Cerrar</button>
+    </div>
+</div>
+
+<script>
+    // ── SESION ──
+    var usuario = localStorage.getItem('sesionActiva');
+    if (!usuario) { window.location.href = 'index.html'; }
+
+    document.getElementById('userGreeting').textContent = 'Hola, ' + usuario;
+
+    function getDato(clave) {
+        return localStorage.getItem(usuario + '_' + clave) || '0';
+    }
+
+    var consumo = getDato('consumoTotal');
+    var hoy     = getDato('consumoHoy');
+    var costo   = getDato('costoTotal');
+    var efic    = parseInt(getDato('eficiencia'));
+
+    document.getElementById('balanceVal').textContent = consumo;
+    document.getElementById('statHoy').textContent    = hoy + ' kWh';
+    document.getElementById('statCosto').textContent  = 'COP $' + parseInt(costo).toLocaleString('es-CO');
+
+    document.getElementById('circPct').textContent = efic + '%';
+    var offset = 251 - (251 * efic / 100);
+    document.querySelector('.ring-fill').style.strokeDashoffset = offset;
+
+    var consumido  = Math.round(parseInt(consumo) * efic / 100);
+    var disponible = parseInt(consumo) - consumido;
+    document.getElementById('infoConsumed').textContent = consumido  + ' kWh';
+    document.getElementById('infoAvail').textContent    = disponible + ' kWh';
+
+    // ── CERRAR SESION ──
+    function cerrarSesion() {
+        localStorage.removeItem('sesionActiva');
+        window.location.href = 'index.html';
+    }
+
+    // ── MODAL USC ──
+    function abrirModal() {
+        document.getElementById('modalUSC').classList.add('open');
+    }
+
+    function cerrarModal() {
+        document.getElementById('modalUSC').classList.remove('open');
+    }
+</script>
+<script>
+    if ('serviceworker' in navigator) {
+        navigation.serviceworker.register('./sw.js');
+    }
+</script>
+</body>
+</html>
